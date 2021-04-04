@@ -20,8 +20,8 @@ function print_banner {
 function print_usage {
   print_banner
   echo "Usage:"
-  echo "-d [value] | mandatory | path to destination directory (to store backup.tar.gz)"
-  echo "-s [value] | mandatory | path to source directory or source file, can be used multiple times"
+  echo "-b [value] | mandatory | path to backup directory (containing the *.tar.gz files)"
+  echo "-d [value] | optional  | path to destination directory (if not present files will be extracted corresponding to root directory)"
   echo "-v         | optional  | skip verification (assume everything is set correctly)"
 }
 
@@ -37,64 +37,52 @@ function setup_environment {
     exit 1
   fi
 
-  if [[ -z "${DEST_DIR}" ]]; then
-    print_error "destination directory not set (see -d flag)"
+  if [[ -z "${BACKUP_DIR}" ]]; then
+    print_error "backup directory not set (see -b flag)"
     print_usage
-    exit 1;
+    exit 1
   fi
-
-  if [[ ${#SOURCES[@]} -lt 1 ]]; then
-    print_error "no source directories or source files set (see -s flag)"
-    print_usage
-    exit 1;
+  if [[ -z "${DEST_DIR}" ]]; then
+    DEST_DIR="/"
   fi
 
   # check if first character is slash
+  if ! [[ "${BACKUP_DIR}" =~ ^\/.* ]]; then
+    print_error "backup directory '${BACKUP_DIR}' must be an absolute path"
+    exit 1
+  fi
   if ! [[ "${DEST_DIR}" =~ ^\/.* ]]; then
     print_error "destination directory '${DEST_DIR}' must be an absolute path"
     exit 1
   fi
-  for SOURCE in "${SOURCES[@]}"; do
-    if ! [[ "${SOURCE}" =~ ^\/.* ]]; then
-      print_error "source '${SOURCE}' must be an absolute path"
-      exit 1
-    elif [[ ! -e "${SOURCE}" ]]; then
-      print_error "source '${SOURCE}' does not exist"
-      exit 1;
-    fi
-  done
 
   # check if last character is slash
-  if [[ "${DEST_DIR}" =~ .*\/$ ]]; then
+  if [[ "${BACKUP_DIR}" =~ .*\/$ ]]; then
     # remove if last character is slash
-    DEST_DIR=$(echo "${DEST_DIR}" | sed 's/.\{1\}$//')
+    BACKUP_DIR=$(echo "${BACKUP_DIR}" | sed 's/.\{1\}$//')
   fi
 
-  readonly YEAR=$(date +"%Y")
-  readonly WEEK="CW$(date +"%V")"
-  readonly DATE_TIME="$(date +"%Y-%m-%d_%H-%M-%S")"
-
-  readonly BACKUP_DIRECTORY="${DEST_DIR}/${YEAR}-${WEEK}"
-  readonly BACKUP_FILENAME="${DATE_TIME}.tar.gz"
-  readonly SNAPSHOT_FILENAME="${YEAR}-${WEEK}.snapshot"
-  readonly BACKUP_FILEPATH="${BACKUP_DIRECTORY}/${BACKUP_FILENAME}"
-  readonly SNAPSHOT_FILEPATH="${BACKUP_DIRECTORY}/${SNAPSHOT_FILENAME}"
-
-  if [[ ! -e "${BACKUP_DIRECTORY}" ]]; then
-    mkdir -p "${BACKUP_DIRECTORY}" || (echo "could not create destination backup directory" && exit 1)
-  fi
-
-  if [[ -e "${BACKUP_FILEPATH}" ]]; then
-    print_error "backup file '${BACKUP_FILEPATH}' does already exist"
+  if [[ -e "${BACKUP_DIR}" ]]; then
+    cd "${BACKUP_DIR}" || (print_error "could not switch to backup directory" && exit 1)
+  else
+    print_error "backup directory not found"
     exit 1
   fi
+
+  readonly REGEX_BACKUP_FILES="^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2}.tar.gz$"
+  readonly BACKUP_FILES=( $(find -- * -regextype posix-egrep -regex "${REGEX_BACKUP_FILES}") )
+
+  if [[ "${#BACKUP_FILES[@]}" -lt 1 ]]; then
+    print_error "no backups found in backup directory"
+    exit 1
+  fi
+
 }
 
-function create_backup {
+function restore_backup {
   echo "Using following specification"
-  echo "destination directory:  ${DEST_DIR}"
-  echo "backup filename:        ${BACKUP_FILENAME}"
-  echo "sources:                ${SOURCES[*]}"
+  echo "backup directory:  ${BACKUP_DIR}"
+  echo "backup files:      ${BACKUP_FILES[*]}"
   echo ""
 
   if [[ -z "${VERIFY}" ]]; then
@@ -107,18 +95,23 @@ function create_backup {
     exit 1
   fi
 
-  tar --listed-incremental="${SNAPSHOT_FILEPATH}" -cvzf "${BACKUP_FILEPATH}" ${SOURCES[*]} || (print_error "backup failed" && exit 1)
+  for BACKUP_FILE in "${BACKUP_FILES[@]}"; do
+    BACKUP_FILEPATH="${BACKUP_DIR}/${BACKUP_FILE}"
+    echo "restoring '${BACKUP_FILEPATH}' to '${DEST_DIR}' ..."
+    tar --listed-incremental=/dev/null -xvzf "${BACKUP_FILEPATH}" -C "${DEST_DIR}"
+    echo ""
+  done
 }
 
-while getopts d:s:v option; do
+while getopts b:d:s:v option; do
   case "${option}" in
 
+  b) BACKUP_DIR=${OPTARG} ;;
   d) DEST_DIR=${OPTARG} ;;
-  s) SOURCES=( "${SOURCES[@]}" "${OPTARG}" ) ;;
   v) VERIFY=y ;;
   *) print_usage && exit 1 ;;
   esac
 done
 
 setup_environment
-create_backup
+restore_backup
