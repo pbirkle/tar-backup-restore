@@ -78,6 +78,7 @@ function setup_environment {
   readonly BACKUP_FILENAME="${DATE_TIME}.tar.gz"
   readonly SNAPSHOT_FILENAME="${YEAR}-${WEEK}.snapshot"
   readonly BACKUP_FILEPATH="${BACKUP_DIRECTORY}/${BACKUP_FILENAME}"
+  readonly BACKUP_LOG_FILEPATH="${BACKUP_FILEPATH}.log"
   readonly SNAPSHOT_FILEPATH="${BACKUP_DIRECTORY}/${SNAPSHOT_FILENAME}"
 
   if [[ ! -e "${BACKUP_DIRECTORY}" ]]; then
@@ -107,7 +108,9 @@ function create_backup {
     exit 1
   fi
 
-  tar --listed-incremental="${SNAPSHOT_FILEPATH}" -cvzf "${BACKUP_FILEPATH}" ${SOURCES[*]} || (print_error "backup failed" && exit 1)
+  echo "backup started, this could take a while..."
+  tar --listed-incremental="${SNAPSHOT_FILEPATH}" -cvzf "${BACKUP_FILEPATH}" ${SOURCES[*]} > "${BACKUP_LOG_FILEPATH}" || (print_error "backup failed" && exit 1)
+  echo "backup successfully, see '${BACKUP_LOG_FILEPATH}' for further investigation"
 }
 
 while getopts d:s:v option; do
