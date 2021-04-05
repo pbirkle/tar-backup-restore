@@ -16,18 +16,15 @@ function print_banner() {
   echo " ╚═════╝ ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝ ╚═════╝ ╚═╝"
   echo " https://github.com/pbirkle/tar-backup-restore"
   echo ""
-}
-
-function print_usage() {
-  print_banner
-
   echo " - backups are created as a compressed tar file (tar.gz, save space on your hard drive)"
   echo " - backups are created on a monthly base"
   echo "   - every first backup (per month) will be an full backup"
   echo "   - every other backup (per month) will be an incremental backup"
   echo " - to restore a backup use 'tar.gz restore'"
   echo ""
+}
 
+function print_usage() {
   bold='\033[1m'
   reset="\e[0m"
   echo " |----------------------------------------------------------------------------------------------|"
@@ -154,6 +151,7 @@ while getopts d:s:v option; do
   esac
 done
 
+print_banner
 setup_environment
 verify
 create_backup

@@ -16,14 +16,11 @@ function print_banner() {
   echo " ╚═╝  ╚═╝╚══════╝╚══════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝╚══════╝"
   echo " https://github.com/pbirkle/tar-backup-restore"
   echo ""
+  echo " - backups have to be created with 'tar.gz backup'"
+  echo ""
 }
 
 function print_usage() {
-  print_banner
-
-  echo " - backups have to be created with 'tar.gz backup'"
-  echo ""
-
   bold='\033[1m'
   reset="\e[0m"
   echo " |----------------------------------------------------------------------------------------------|"
@@ -167,6 +164,7 @@ while getopts b:d:l:s:v option; do
   esac
 done
 
+print_banner
 setup_environment
 verify
 restore_backup
