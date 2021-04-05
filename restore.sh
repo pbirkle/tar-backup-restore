@@ -107,16 +107,12 @@ function setup_environment() {
 }
 
 function verify() {
-  print_log ""
   print_log "restore base directory:"
   print_log "  - ${DEST_DIR}"
-  print_log ""
   print_log "restore log (full):"
   print_log "  - ${LOG_FILEPATH}"
-  print_log ""
   print_log "backup directory:"
   print_log "  - ${BACKUP_DIR}"
-  print_log ""
   print_log "backup files:"
   for BACKUP_FILE in "${BACKUP_FILES[@]}"; do
     print_log "  - ${BACKUP_FILE}"

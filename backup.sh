@@ -111,13 +111,10 @@ function setup_environment() {
 }
 
 function verify() {
-  print_log ""
   print_log "backup file:"
   print_log "  - ${BACKUP_FILEPATH}"
-  print_log ""
   print_log "backup log (full):"
   print_log "  - ${LOG_FILEPATH}"
-  print_log ""
   print_log "sources:"
   for SOURCE in "${SOURCES[@]}"; do
     print_log "  - ${SOURCE}"
