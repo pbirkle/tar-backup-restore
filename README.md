@@ -23,11 +23,11 @@ Use `backup.sh` with following parameters to execute an backup. Some of them are
 
 | Parameter  | Mandatory | Comment                                                             |
 |------------|-----------|---------------------------------------------------------------------|
-| -d [value] | yes       | path to destination directory (to store *.tar.gz)                   |
-| -s [value] | yes       | path to source directory or source file, can be used multiple times |
-| -v         | no        | skip verification (assume everything is set correctly)              |
+| `-d [value]` | `yes`      | path to destination directory (to store *.tar.gz)                   |
+| `-s [value]` | `yes`       | path to source directory or source file, can be used multiple times |
+| `-v`         | `no`        | skip verification (assume everything is set correctly)              |
 
-Be aware that in your provided destination path (`-d`) there will be always created an subfolder which contains `[YEAR]-[MONTH]` (e.g. 2021-04) in which the backups will be located. Everytime a new month begins, a new 'full'-backup will be created in corresponding folder. All following backups are incremental backups.
+Be aware that in your provided destination path (`-d`) there will be always created an subfolder which contains `[YEAR]-[MONTH]` (e.g. `2021-04`) in which the backups will be located. Everytime a new month begins, a new 'full'-backup will be created in corresponding folder. All following backups (for this month) will be incremental backups.
 
 #### Example
 
@@ -57,15 +57,15 @@ Use `restore.sh` with following parameters to execute an restore. Some of them a
 
 | Parameter  | Mandatory | Comment                                                        |
 |------------|-----------|----------------------------------------------------------------|
-| -b [value] | yes       | path to backup directory (containing the *.tar.gz files)       |
-| -d [value] | no        | path to destination directory <br />default: root directory (/)      |
-| -l [value] | no        | filename (!) of last backup file to restore <br />default: all files |
-| -v         | no        | skip verification (assume everything is set correctly)         |
+| `-b [value]` | `yes`       | path to backup directory (containing the *.tar.gz files)       |
+| `-d [value]` | `no`        | path to destination directory <br />default: root directory (`/`)      |
+| `-l [value]` | `no`        | filename (!) of last backup file to restore <br />default: all files |
+| `-v`         | `no`        | skip verification (assume everything is set correctly)         |
 
 #### Example
 
 With following command you can restore an existing backup (created in [backup](#backup) section):
-- Backup files will be restored from older backups (full and all incremental)
+- Backup files will be restored from older backups (full and all incremental, from corresponding month)
 
 ```
 /backup/tar-backup-restore/restore.sh \
